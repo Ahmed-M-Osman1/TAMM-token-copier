@@ -1,0 +1,53 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Token Copier</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+      width: 250px;
+      background-color: #f4f4f4;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    button {
+      display: block;
+      margin: 10px auto;
+      width: 100%;
+      padding: 10px;
+      background-color: #007BFF;
+      border: none;
+      color: white;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #notification {
+      display: none;
+      text-align: center;
+      background-color: #28a745;
+      color: white;
+      padding: 8px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="notification">Token copied!</div>
+  <h2>Token Copier</h2>
+  <button id="copy-third-party">Copy Third Party Token</button>
+  <button id="copy-smart-pass">Copy Smart Pass Token</button>
+  <script src="popup.js"></script>
+</body>
+</html>
