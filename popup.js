@@ -24,9 +24,13 @@ document.getElementById("add-info").addEventListener("click", () => {
           // Insert Driving License Number
           const licenseInput = document.querySelector('input[name="DrivingLicenseNumber"]');
           if (licenseInput) {
-            licenseInput.value = license;
+            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+            nativeInputValueSetter.call(licenseInput, license);
+
             licenseInput.dispatchEvent(new Event('input', { bubbles: true }));
+            licenseInput.dispatchEvent(new Event('change', { bubbles: true }));
           }
+
 
           // Open Emirate dropdown
           const openDropdown = document.querySelector('div[role="button"][aria-label="select-control"]');
