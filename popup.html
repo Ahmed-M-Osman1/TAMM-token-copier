@@ -1,0 +1,89 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Token Copier</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+      width: 300px;
+      background-color: #f4f4f4;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    button {
+      display: block;
+      margin: 10px auto;
+      width: 100%;
+      padding: 10px;
+      background-color: #007BFF;
+      border: none;
+      color: white;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #notification {
+      display: none;
+      text-align: center;
+      background-color: #28a745;
+      color: white;
+      padding: 8px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    .input-group {
+      margin-bottom: 10px;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="notification">Token copied!</div>
+  <h2>Token Copier</h2>
+  <button id="copy-third-party">Copy Third Party Token</button>
+  <button id="copy-smart-pass">Copy Smart Pass Token</button>
+
+  <h3 style="margin-top: 20px;">Driving License Info</h3>
+  <div class="input-group">
+    <label for="licenseNumber">Driving License Number</label>
+    <input type="text" id="licenseNumber" placeholder="Enter license number">
+  </div>
+
+  <div class="input-group">
+    <label for="emirateSelect">Driving License Emirate</label>
+    <select id="emirateSelect">
+      <option value="">Select Emirate</option>
+      <option value="Abu Dhabi">Abu Dhabi</option>
+      <option value="Ajman">Ajman</option>
+      <option value="Dubai">Dubai</option>
+      <option value="Fujairah">Fujairah</option>
+      <option value="Ras Al Khaimah">Ras Al Khaimah</option>
+      <option value="Sharjah">Sharjah</option>
+      <option value="Umm Al Quwain">Umm Al Quwain</option>
+    </select>
+  </div>
+
+  <button id="add-info">Add</button>
+
+  <script src="popup.js"></script>
+</body>
+</html>
