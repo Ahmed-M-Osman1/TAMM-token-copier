@@ -1,10 +1,9 @@
-
 {
   "manifest_version": 3,
-  "name": "Token Copier",
-  "version": "1.2",
-  "description": "Copy tokens from staticData and fill driving license fields.",
-  "permissions": ["scripting", "activeTab", "clipboardWrite"],
+  "name": "Token Copier & Card Auto-Fill",
+  "version": "2.0",
+  "description": "Copy tokens from staticData, fill driving license fields, and auto-fill payment forms.",
+  "permissions": ["scripting", "activeTab", "clipboardWrite", "storage"],
   "host_permissions": ["<all_urls>"],
   "action": {
     "default_popup": "popup.html",

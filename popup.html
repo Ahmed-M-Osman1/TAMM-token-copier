@@ -1,98 +1,169 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Token Copier</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      padding: 20px;
-      width: 300px;
-      background-color: #f4f4f4;
-    }
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #333;
-    }
-    button {
-      display: block;
-      margin: 10px auto;
-      width: 100%;
-      padding: 10px;
-      background-color: #007BFF;
-      border: none;
-      color: white;
-      font-size: 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    #notification {
-      display: none;
-      text-align: center;
-      background-color: #28a745;
-      color: white;
-      padding: 8px;
-      border-radius: 4px;
-      margin-bottom: 10px;
-      font-size: 14px;
-    }
-    .input-group {
-      margin-bottom: 10px;
-    }
-    input, select {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      margin-bottom: 15px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-    }
-    #licenseNumber{
-      width: 96%;
-      padding: 8px;
-      margin-top: 5px;
-      margin-bottom: 15px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-    }
-  </style>
+  <title>Token Copier & Card Auto-Fill</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="notification">Token copied!</div>
-  <h2>Token Copier</h2>
-  <button id="copy-third-party">Copy Third Party Token</button>
-  <button id="copy-smart-pass">Copy Smart Pass Token</button>
+<script src="card.js"></script>
+<script src="popup.js"></script>
+<div id="notification">Success!</div>
 
-  <h3 style="margin-top: 20px;">Driving License Info</h3>
-  <div class="input-group">
-    <label for="licenseNumber">Driving License Number</label>
-    <input type="text" id="licenseNumber" placeholder="Enter license number">
+<!-- Tab Navigation -->
+<div class="tab-container">
+  <ul class="tab-nav">
+    <li>
+      <button class="tab-btn active" data-tab="tokens">
+        <span class="icon">🔑</span>Tokens
+      </button>
+    </li>
+    <li>
+      <button class="tab-btn" data-tab="cards">
+        <span class="icon">💳</span>Cards
+      </button>
+    </li>
+  </ul>
+</div>
+
+<!-- Tab Content -->
+<div class="tab-content">
+  <!-- Tokens Tab -->
+  <div id="tokens" class="tab-pane active">
+    <h2><span class="icon">🔑</span>Token Copier</h2>
+
+    <button id="copy-third-party" class="btn-primary">
+      <span class="icon">📋</span>Copy Third Party Token
+    </button>
+    <button id="copy-smart-pass" class="btn-primary">
+      <span class="icon">🎫</span>Copy Smart Pass Token
+    </button>
+
+    <h3>Driving License Info</h3>
+    <div class="input-group">
+      <label for="licenseNumber">
+        Driving License Number
+        <span class="status-indicator" id="licenseStatus"></span>
+      </label>
+      <input type="text" id="licenseNumber" placeholder="Enter license number">
+    </div>
+
+    <div class="input-group">
+      <label for="emirateSelect">
+        Driving License Emirate
+        <span class="status-indicator" id="emirateStatus"></span>
+      </label>
+      <select id="emirateSelect">
+        <option value="">Select Emirate</option>
+        <option value="Abu Dhabi">Abu Dhabi</option>
+        <option value="Ajman">Ajman</option>
+        <option value="Dubai">Dubai</option>
+        <option value="Fujairah">Fujairah</option>
+        <option value="Ras Al Khaimah">Ras Al Khaimah</option>
+        <option value="Sharjah">Sharjah</option>
+        <option value="Umm Al Quwain">Umm Al Quwain</option>
+      </select>
+    </div>
+
+    <button id="add-info" class="btn-success">
+      <span class="icon">✅</span>Add Driving License Info
+    </button>
+
+    <div class="keyboard-hint">
+      💡 Tip: License info is automatically saved
+    </div>
   </div>
 
-  <div class="input-group">
-    <label for="emirateSelect">Driving License Emirate</label>
-    <select id="emirateSelect">
-      <option value="">Select Emirate</option>
-      <option value="Abu Dhabi">Abu Dhabi</option>
-      <option value="Ajman">Ajman</option>
-      <option value="Dubai">Dubai</option>
-      <option value="Fujairah">Fujairah</option>
-      <option value="Ras Al Khaimah">Ras Al Khaimah</option>
-      <option value="Sharjah">Sharjah</option>
-      <option value="Umm Al Quwain">Umm Al Quwain</option>
-    </select>
+  <!-- Cards Tab -->
+  <div id="cards" class="tab-pane">
+    <h2><span class="icon">💳</span>Card Auto-Fill</h2>
+
+    <h3>Card Information</h3>
+
+    <div class="input-group">
+      <label for="cardholderName">
+        Card Holder Name
+        <span class="status-indicator" id="nameStatus"></span>
+      </label>
+      <input type="text" id="cardholderName" placeholder="Enter cardholder name" maxlength="30">
+    </div>
+
+    <div class="input-group">
+      <label for="cardNumber">
+        Card Number
+        <span class="status-indicator" id="numberStatus"></span>
+      </label>
+      <input type="text" id="cardNumber" placeholder="Enter card number" maxlength="19">
+    </div>
+
+    <div class="input-group">
+      <label for="cardCvv">
+        CVC/CVV
+        <span class="status-indicator" id="cvvStatus"></span>
+      </label>
+      <input type="text" id="cardCvv" placeholder="Enter CVC" maxlength="4">
+    </div>
+
+    <div class="expiry-row">
+      <div class="input-group">
+        <label for="expMonth">
+          Month
+          <span class="status-indicator" id="monthStatus"></span>
+        </label>
+        <select id="expMonth">
+          <option value="">MM</option>
+          <option value="1">01</option>
+          <option value="2">02</option>
+          <option value="3">03</option>
+          <option value="4">04</option>
+          <option value="5">05</option>
+          <option value="6">06</option>
+          <option value="7">07</option>
+          <option value="8">08</option>
+          <option value="9">09</option>
+          <option value="10">10</option>
+          <option value="11">11</option>
+          <option value="12">12</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label for="expYear">
+          Year
+          <span class="status-indicator" id="yearStatus"></span>
+        </label>
+        <select id="expYear">
+          <option value="">YYYY</option>
+          <option value="2024">2024</option>
+          <option value="2025">2025</option>
+          <option value="2026">2026</option>
+          <option value="2027">2027</option>
+          <option value="2028">2028</option>
+          <option value="2029">2029</option>
+          <option value="2030">2030</option>
+          <option value="2031">2031</option>
+          <option value="2032">2032</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Card Preview -->
+    <div class="card-preview" id="cardPreview" style="display: none;">
+      <h4>Card Preview</h4>
+      <div class="card-number" id="previewNumber">**** **** **** ****</div>
+      <div class="card-details">
+        <span id="previewName">CARDHOLDER NAME</span>
+        <span id="previewExpiry">MM/YY</span>
+      </div>
+    </div>
+
+    <button id="fill-form" class="btn-primary" onclick="fillPaymentForm()">
+      <span class="icon">🚀</span>Fill Payment Form
+    </button>
+
+    <div class="keyboard-hint">
+      💡 Tip: Press Ctrl+Enter to quickly fill the form
+    </div>
   </div>
-
-  <button id="add-info">Add</button>
-
-  <script src="popup.js"></script>
+</div>
 </body>
 </html>
