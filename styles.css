@@ -201,7 +201,11 @@ h3 {
     font-size: 14px;
     font-weight: 500;
     box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-    position: relative;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    z-index: 1000;
     overflow: hidden;
 }
 
@@ -299,6 +303,15 @@ input::placeholder {
     display: flex;
     justify-content: flex-end;
     margin-top: 5px;
+}
+
+/* Utility Classes */
+.hidden {
+    display: none;
+}
+
+.test-btn {
+    margin-bottom: 10px;
 }
 
 /* Card Preview */

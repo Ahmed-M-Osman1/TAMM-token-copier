@@ -6,8 +6,6 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<script src="card.js"></script>
-<script src="popup.js"></script>
 <div id="notification">Success!</div>
 
 <!-- Tab Navigation -->
@@ -147,7 +145,7 @@
     </div>
 
     <!-- Card Preview -->
-    <div class="card-preview" id="cardPreview" style="display: none;">
+    <div class="card-preview hidden" id="cardPreview">
       <h4>Card Preview</h4>
       <div class="card-number" id="previewNumber">**** **** **** ****</div>
       <div class="card-details">
@@ -156,7 +154,11 @@
       </div>
     </div>
 
-    <button id="fill-form" class="btn-primary" onclick="fillPaymentForm()">
+    <button id="test-extension" class="btn-primary test-btn">
+      <span class="icon">🔧</span>Test Extension
+    </button>
+    
+    <button id="fill-form" class="btn-primary">
       <span class="icon">🚀</span>Fill Payment Form
     </button>
 
@@ -165,5 +167,7 @@
     </div>
   </div>
 </div>
+<script src="card.js"></script>
+<script src="popup.js"></script>
 </body>
 </html>
