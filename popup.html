@@ -2,23 +2,24 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Token Copier & Card Auto-Fill</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div id="notification">Success!</div>
+<div id="notification" role="status" aria-live="polite" aria-atomic="true">Open your TAMM or payment page, then choose an action.</div>
 
 <!-- Tab Navigation -->
 <div class="tab-container">
-  <ul class="tab-nav">
-    <li>
-      <button class="tab-btn active" data-tab="tokens">
-        <span class="icon">🔑</span>Tokens
+  <ul class="tab-nav" role="tablist" aria-label="Extension tools">
+    <li role="presentation">
+      <button id="tab-tokens" class="tab-btn active" data-tab="tokens" role="tab" aria-controls="tokens" aria-selected="true">
+        <span class="icon" aria-hidden="true">🔑</span>Tokens
       </button>
     </li>
-    <li>
-      <button class="tab-btn" data-tab="cards">
-        <span class="icon">💳</span>Cards
+    <li role="presentation">
+      <button id="tab-cards" class="tab-btn" data-tab="cards" role="tab" aria-controls="cards" aria-selected="false" tabindex="-1">
+        <span class="icon" aria-hidden="true">💳</span>Cards
       </button>
     </li>
   </ul>
@@ -27,21 +28,21 @@
 <!-- Tab Content -->
 <div class="tab-content">
   <!-- Tokens Tab -->
-  <div id="tokens" class="tab-pane active">
-    <h2><span class="icon">🔑</span>Token Copier</h2>
+  <div id="tokens" class="tab-pane active" role="tabpanel" aria-labelledby="tab-tokens">
+    <h2><span class="icon" aria-hidden="true">🔑</span>Token Copier</h2>
 
-    <button id="copy-third-party" class="btn-primary">
-      <span class="icon">📋</span>Copy Third Party Token
+    <button id="copy-smart-pass" class="btn-primary" data-page-action>
+      <span class="icon" aria-hidden="true">🎫</span>Copy Smart Pass Token
     </button>
-    <button id="copy-smart-pass" class="btn-primary">
-      <span class="icon">🎫</span>Copy Smart Pass Token
+    <button id="copy-third-party" class="btn-secondary" data-page-action>
+      <span class="icon" aria-hidden="true">📋</span>Copy Third Party Token
     </button>
 
     <h3>Driving License Info</h3>
     <div class="input-group">
       <label for="licenseNumber">
         Driving License Number
-        <span class="status-indicator" id="licenseStatus"></span>
+        <span aria-hidden="true" class="status-indicator" id="licenseStatus"></span>
       </label>
       <input type="text" id="licenseNumber" placeholder="Enter license number">
     </div>
@@ -49,7 +50,7 @@
     <div class="input-group">
       <label for="emirateSelect">
         Driving License Emirate
-        <span class="status-indicator" id="emirateStatus"></span>
+        <span aria-hidden="true" class="status-indicator" id="emirateStatus"></span>
       </label>
       <select id="emirateSelect">
         <option value="">Select Emirate</option>
@@ -63,50 +64,50 @@
       </select>
     </div>
 
-    <button id="add-info" class="btn-success">
-      <span class="icon">✅</span>Add Driving License Info
+    <button id="add-info" class="btn-success" data-page-action>
+      <span class="icon" aria-hidden="true">✅</span>Fill Driving License Info
     </button>
 
     <div class="keyboard-hint">
-      💡 Tip: License info is automatically saved
+      License information is saved on this device when you use Fill.
     </div>
   </div>
 
   <!-- Cards Tab -->
-  <div id="cards" class="tab-pane">
-    <h2><span class="icon">💳</span>Card Auto-Fill</h2>
+  <div id="cards" class="tab-pane" role="tabpanel" aria-labelledby="tab-cards" hidden>
+    <h2><span class="icon" aria-hidden="true">💳</span>Card Auto-Fill</h2>
 
     <h3>Card Information</h3>
 
     <div class="input-group">
       <label for="cardholderName">
         Card Holder Name
-        <span class="status-indicator" id="nameStatus"></span>
+        <span aria-hidden="true" class="status-indicator" id="nameStatus"></span>
       </label>
-      <input type="text" id="cardholderName" placeholder="Enter cardholder name" maxlength="30">
+      <input type="text" id="cardholderName" placeholder="Enter cardholder name" autocomplete="cc-name">
     </div>
 
     <div class="input-group">
       <label for="cardNumber">
         Card Number
-        <span class="status-indicator" id="numberStatus"></span>
+        <span aria-hidden="true" class="status-indicator" id="numberStatus"></span>
       </label>
-      <input type="text" id="cardNumber" placeholder="Enter card number" maxlength="19">
+      <input type="text" id="cardNumber" placeholder="Enter card number" maxlength="23" inputmode="numeric" autocomplete="cc-number">
     </div>
 
     <div class="input-group">
       <label for="cardCvv">
         CVC/CVV
-        <span class="status-indicator" id="cvvStatus"></span>
+        <span aria-hidden="true" class="status-indicator" id="cvvStatus"></span>
       </label>
-      <input type="text" id="cardCvv" placeholder="Enter CVC" maxlength="4">
+      <input type="password" id="cardCvv" placeholder="Enter CVV" maxlength="4" inputmode="numeric" autocomplete="off" aria-describedby="card-storage-note">
     </div>
 
     <div class="expiry-row">
       <div class="input-group">
         <label for="expMonth">
           Month
-          <span class="status-indicator" id="monthStatus"></span>
+          <span aria-hidden="true" class="status-indicator" id="monthStatus"></span>
         </label>
         <select id="expMonth">
           <option value="">MM</option>
@@ -127,19 +128,10 @@
       <div class="input-group">
         <label for="expYear">
           Year
-          <span class="status-indicator" id="yearStatus"></span>
+          <span aria-hidden="true" class="status-indicator" id="yearStatus"></span>
         </label>
         <select id="expYear">
           <option value="">YYYY</option>
-          <option value="2024">2024</option>
-          <option value="2025">2025</option>
-          <option value="2026">2026</option>
-          <option value="2027">2027</option>
-          <option value="2028">2028</option>
-          <option value="2029">2029</option>
-          <option value="2030">2030</option>
-          <option value="2031">2031</option>
-          <option value="2032">2032</option>
         </select>
       </div>
     </div>
@@ -154,19 +146,24 @@
       </div>
     </div>
 
-    <button id="test-extension" class="btn-primary test-btn">
-      <span class="icon">🔧</span>Test Extension
+    <button id="test-extension" class="btn-secondary test-btn" data-page-action>
+      <span class="icon" aria-hidden="true">🔧</span>Check Payment Fields
     </button>
     
-    <button id="fill-form" class="btn-primary">
-      <span class="icon">🚀</span>Fill Payment Form
+    <button id="fill-form" class="btn-primary" data-page-action>
+      <span class="icon" aria-hidden="true">🚀</span>Fill Payment Form
     </button>
 
+    <p id="card-storage-note" class="keyboard-hint">Name, card number and expiry are saved on this device without encryption by this extension. CVV is never saved. Forms are filled only when you request it.</p>
+    <button id="clear-card" class="btn-secondary">Clear Saved Card</button>
+
     <div class="keyboard-hint">
-      💡 Tip: Press Ctrl+Enter to quickly fill the form
+      Press Ctrl+Enter (⌘+Enter on Mac) to fill. Review the page before paying.
     </div>
   </div>
 </div>
+<script src="extension.js"></script>
+<script src="content-script.js"></script>
 <script src="card.js"></script>
 <script src="popup.js"></script>
 </body>

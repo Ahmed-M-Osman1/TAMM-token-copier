@@ -6,25 +6,30 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeTabs() {
-  const tabButtons = document.querySelectorAll('.tab-btn');
-  const tabPanes = document.querySelectorAll('.tab-pane');
-
-  tabButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      const targetTab = button.getAttribute('data-tab');
-
-      // Remove active class from all tabs and panes
-      tabButtons.forEach(btn => btn.classList.remove('active'));
-      tabPanes.forEach(pane => pane.classList.remove('active'));
-
-      // Add active class to clicked tab and corresponding pane
-      button.classList.add('active');
-      document.getElementById(targetTab).classList.add('active');
-
-      // Update status indicators when switching to cards tab
-      if (targetTab === 'cards') {
-        setTimeout(updateStatusIndicators, 100);
-      }
+  const buttons = Array.from(document.querySelectorAll('.tab-btn'));
+  const activate = button => {
+    buttons.forEach(item => {
+      const selected = item === button;
+      item.classList.toggle('active', selected);
+      item.setAttribute('aria-selected', String(selected));
+      item.tabIndex = selected ? 0 : -1;
+      const panel = document.getElementById(item.dataset.tab);
+      panel.classList.toggle('active', selected);
+      panel.hidden = !selected;
+    });
+  };
+  buttons.forEach((button, index) => {
+    button.addEventListener('click', () => activate(button));
+    button.addEventListener('keydown', event => {
+      const offsets = { ArrowRight: 1, ArrowLeft: -1 };
+      let next;
+      if (event.key in offsets) next = (index + offsets[event.key] + buttons.length) % buttons.length;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = buttons.length - 1;
+      else return;
+      event.preventDefault();
+      activate(buttons[next]);
+      buttons[next].focus();
     });
   });
 }
@@ -41,7 +46,7 @@ function initializeTokensTab() {
   });
 
   // Add driving license info
-  document.getElementById("add-info").addEventListener("click", () => {
+  document.getElementById("add-info").addEventListener("click", () => runAction("add-info", "Filling license information…", async () => {
     const licenseNumber = document.getElementById("licenseNumber").value.trim();
     const emirate = document.getElementById("emirateSelect").value.trim();
 
@@ -50,62 +55,229 @@ function initializeTokensTab() {
       return;
     }
 
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      chrome.scripting.executeScript({
-        target: { tabId: tabs[0].id },
-        func: (license, emirate) => {
+    const result = await executePage(async (license, emirate) => {
+
+      try {
+        let results = [];
+
+        // Step 1: Insert Driving License Number
+        let licenseInput;
+        for (let attempt = 0; attempt < 15; attempt++) {
+          licenseInput = document.querySelector('input[name="DrivingLicenseNumber"]');
+          if (licenseInput) break;
+          await new Promise(resolve => setTimeout(resolve, 150));
+        }
+        if (!licenseInput || licenseInput.disabled || licenseInput.readOnly) {
+          return { success: false, summary: 'Open the editable driving license form in TAMM, then try again.' };
+        }
+        if (licenseInput) {
+
+          // Try multiple approaches to fill the license number
+          let success = false;
+
+          // Approach 1: Focus, clear, type simulation
           try {
-            // Insert Driving License Number
-            const licenseInput = document.querySelector('input[name="DrivingLicenseNumber"]');
-            if (licenseInput) {
+            licenseInput.focus();
+            licenseInput.click(); // Some fields need to be clicked
+
+            // Clear existing value completely
+            licenseInput.select();
+            const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+            nativeSetter.call(licenseInput, '');
+
+            // Simulate typing each character
+            for (let i = 0; i < license.length; i++) {
+              nativeSetter.call(licenseInput, licenseInput.value + license[i]);
+              licenseInput.dispatchEvent(new KeyboardEvent('keydown', { key: license[i], bubbles: true }));
+              licenseInput.dispatchEvent(new KeyboardEvent('keypress', { key: license[i], bubbles: true }));
+              licenseInput.dispatchEvent(new Event('input', { bubbles: true }));
+              licenseInput.dispatchEvent(new KeyboardEvent('keyup', { key: license[i], bubbles: true }));
+            }
+
+            // Final events
+            licenseInput.dispatchEvent(new Event('change', { bubbles: true }));
+            licenseInput.dispatchEvent(new Event('blur', { bubbles: true }));
+
+            await new Promise(resolve => setTimeout(resolve, 200));
+
+            if (licenseInput.value === license) {
+              success = true;
+              results.push(`✅ License number filled (typing simulation): ${license}`);
+            }
+          } catch {
+            // Continue with the next existing compatibility strategy.
+          }
+
+          // Approach 2: Native setter if typing failed
+          if (!success) {
+            try {
               const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+              licenseInput.focus();
               nativeInputValueSetter.call(licenseInput, license);
 
-              licenseInput.dispatchEvent(new Event('input', { bubbles: true }));
+              // Trigger events
+              licenseInput.dispatchEvent(new Event('input', { bubbles: true, inputType: 'insertText' }));
               licenseInput.dispatchEvent(new Event('change', { bubbles: true }));
-            }
+              licenseInput.dispatchEvent(new Event('blur', { bubbles: true }));
 
-            // Open Emirate dropdown
-            const openDropdown = document.querySelector('div[role="button"][aria-label="select-control"]');
-            if (openDropdown) {
-              openDropdown.click();
-            }
+              await new Promise(resolve => setTimeout(resolve, 200));
 
-            // Wait and select the correct emirate option
-            setTimeout(() => {
-              const allOptions = document.querySelectorAll('.ui-lib-select__options-item');
-              for (let option of allOptions) {
-                if (option.textContent.trim() === emirate) {
-                  option.click();
-                  break;
+              if (licenseInput.value === license) {
+                success = true;
+                results.push(`✅ License number filled (native setter): ${license}`);
+              }
+            } catch {
+              // Final verification below reports whether this field accepted the value.
+            }
+          }
+
+          // Approach 3: React/Vue compatibility
+          if (!success) {
+            try {
+              licenseInput.focus();
+
+              // Try to trigger React's onChange if it's a React component
+              const reactInternalInstance = licenseInput._valueTracker ||
+                Object.keys(licenseInput).find(key => key.startsWith('__reactInternalInstance')) ||
+                Object.keys(licenseInput).find(key => key.startsWith('__reactInternalFiber'));
+
+              if (reactInternalInstance) {
+                const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+                nativeInputValueSetter.call(licenseInput, license);
+
+                // Trigger React's synthetic event
+                const event = new Event('input', { bubbles: true });
+                event.simulated = true;
+                licenseInput.dispatchEvent(event);
+
+                await new Promise(resolve => setTimeout(resolve, 200));
+
+                if (licenseInput.value === license) {
+                  success = true;
+                  results.push(`✅ License number filled (React mode): ${license}`);
                 }
               }
-            }, 300);
-
-            return "License info inserted successfully!";
-          } catch (error) {
-            return "Error: " + error.message;
+            } catch {
+              // Final verification below reports whether this field accepted the value.
+            }
           }
-        },
-        args: [licenseNumber, emirate],
-      }, (results) => {
-        if (chrome.runtime.lastError) {
-          showNotification("Script error: " + chrome.runtime.lastError.message, true);
+
+          if (!success) {
+            results.push(`❌ License number failed all attempts. Final value: "${licenseInput.value}"`);
+          }
         } else {
-          const result = results[0].result;
-          showNotification(result, result.includes("Error"));
+          results.push('❌ License input not found');
         }
-      });
-    });
+
+        // Step 2: Handle Emirate dropdown
+        const dropdowns = Array.from(document.querySelectorAll('div[role="button"][aria-label="select-control"]'))
+          .filter(element => element.getClientRects().length && element.getAttribute('aria-disabled') !== 'true');
+        const labeledDropdowns = dropdowns.filter(element => /driving licen[cs]e emirate/i.test(element.textContent));
+        const openDropdown = labeledDropdowns.length === 1 ? labeledDropdowns[0] :
+          dropdowns.length === 1 ? dropdowns[0] : null;
+        if (openDropdown) {
+          openDropdown.click();
+          results.push('✅ Dropdown opened');
+
+          // Wait for dropdown to open and options to be available
+          let attempts = 0;
+          const maxAttempts = 10;
+
+          const waitForOptions = () => {
+            return new Promise((resolve, reject) => {
+              const checkOptions = () => {
+                attempts++;
+                const allOptions = document.querySelectorAll('.ui-lib-select__options-item');
+
+                if (allOptions.length > 0) {
+                  resolve(allOptions);
+                } else if (attempts < maxAttempts) {
+                  setTimeout(checkOptions, 100);
+                } else {
+                  reject(new Error('Dropdown options not found after ' + maxAttempts + ' attempts'));
+                }
+              };
+              checkOptions();
+            });
+          };
+
+          try {
+            const allOptions = await waitForOptions();
+            let optionFound = false;
+
+            for (let option of allOptions) {
+              const optionText = option.textContent.trim();
+              if (optionText === emirate) {
+                option.click();
+                optionFound = true;
+                results.push('✅ Emirate selected: ' + emirate);
+                break;
+              }
+            }
+
+            if (!optionFound) {
+              results.push('❌ Emirate option not found: ' + emirate);
+            }
+
+          } catch (waitError) {
+            results.push('❌ Dropdown options error: ' + waitError.message);
+          }
+
+        } else {
+          results.push('❌ Dropdown button not found');
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // Final verification step
+        const finalLicenseValue = document.querySelector('input[name="DrivingLicenseNumber"]')?.value;
+        const finalDropdownText = (openDropdown?.isConnected ? openDropdown : null)?.textContent?.trim();
+
+        // Also check if there's a hidden select or input for the emirate
+        const emirateSelect = document.querySelector('select[name*="emirate" i], select[name*="Emirate"], input[name*="emirate" i], input[name*="Emirate"]');
+        const emirateValue = emirateSelect?.value;
+
+        const successCount = results.filter(r => r.startsWith('✅')).length;
+
+        // Verify the specific dropdown we interacted with, not a possibly unrelated hidden field.
+        const licenseMatch = finalLicenseValue === license;
+        const emirateMatch = finalDropdownText === emirate;
+
+        const isFullyComplete = licenseMatch && emirateMatch;
+
+        return {
+          success: successCount >= 2 && isFullyComplete,
+          results: results,
+          summary: isFullyComplete ?
+            'License and emirate filled. Review the page before continuing.' :
+            `Could not verify: ${[!licenseMatch && 'license number', !emirateMatch && 'emirate'].filter(Boolean).join(', ')}. Check the form and retry.`,
+          verification: {
+            licenseMatch: licenseMatch,
+            emirateMatch: emirateMatch,
+            licenseActual: finalLicenseValue,
+            emirateActual: finalDropdownText,
+            emirateHidden: emirateValue
+          }
+        };
+
+      } catch (error) {
+        return {
+          success: false,
+          results: ['❌ Script error: ' + error.message],
+          summary: 'The license form could not be filled. Check that it is open and editable.'
+        };
+      }
+    }, [licenseNumber, emirate]);
+    showNotification(result.summary || 'Could not fill the license form.', !result.success);
 
     // Save to storage
-    chrome.storage.local.set({
+    await chrome.storage.local.set({
       "drivingLicenseNumber": licenseNumber,
       "drivingLicenseEmirate": emirate
-    });
+    }).catch(() => showNotification('The fill action finished, but license information could not be saved.', true));
 
     updateStatusIndicators();
-  });
+  }));
 
   // Load saved license data
   loadLicenseData();
@@ -116,39 +288,23 @@ function initializeTokensTab() {
 }
 
 function getToken(tokenKey) {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.scripting.executeScript({
-      target: { tabId: tabs[0].id },
-      func: (key) => {
-        try {
-          const data = JSON.parse(document.getElementById('staticData').innerText).smartpassData;
-          return data[key] || '';
-        } catch (e) {
-          return "ERROR: " + e.message;
-        }
-      },
-      args: [tokenKey],
-    }, (results) => {
-      if (chrome.runtime.lastError) {
-        showNotification("Script error: " + chrome.runtime.lastError.message, true);
-      } else {
-        const token = results[0].result;
-        if (token.startsWith("ERROR:")) {
-          showNotification(token, true);
-        } else {
-          navigator.clipboard.writeText(token).then(() => {
-            showNotification(`${tokenKey.replace(/([A-Z])/g, ' $1').trim()} copied! 🎉`);
-          }).catch(err => {
-            showNotification("Clipboard Error: " + err.message, true);
-          });
-        }
-      }
-    });
+  const smartPass = tokenKey === 'SmartPassToken';
+  return runAction(smartPass ? 'copy-smart-pass' : 'copy-third-party', 'Looking for token…', async () => {
+    const result = await executePage(readPageToken, [tokenKey]);
+    if (result.error) throw new Error(result.error);
+    if (typeof result.token !== 'string' || !result.token.trim()) throw new Error('No token was returned.');
+    try {
+      await navigator.clipboard.writeText(result.token);
+    } catch {
+      throw new Error('Clipboard access failed. Keep the popup open and try again.');
+    }
+    showNotification(`${smartPass ? 'Smart Pass' : 'Third Party'} token copied.`);
   });
 }
 
 function loadLicenseData() {
-  chrome.storage.local.get(["drivingLicenseNumber", "drivingLicenseEmirate"], (result) => {
+  if (!globalThis.chrome?.storage) return;
+  chrome.storage.local.get(["drivingLicenseNumber", "drivingLicenseEmirate"]).then(result => {
     if (result.drivingLicenseNumber) {
       document.getElementById("licenseNumber").value = result.drivingLicenseNumber;
     }
@@ -156,7 +312,7 @@ function loadLicenseData() {
       document.getElementById("emirateSelect").value = result.drivingLicenseEmirate;
     }
     updateStatusIndicators();
-  });
+  }).catch(() => showNotification("Saved license information could not be loaded.", true));
 }
 
 function updateStatusIndicators() {
@@ -197,16 +353,5 @@ function updateStatusIndicators() {
 function showNotification(message, isError = false) {
   const notification = document.getElementById('notification');
   notification.textContent = message;
-
-  if (isError) {
-    notification.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
-  } else {
-    notification.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
-  }
-
-  notification.style.display = 'block';
-
-  setTimeout(() => {
-    notification.style.display = 'none';
-  }, 3000);
+  notification.classList.toggle('error', isError);
 }
