@@ -1,98 +1,170 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Token Copier</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      padding: 20px;
-      width: 300px;
-      background-color: #f4f4f4;
-    }
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #333;
-    }
-    button {
-      display: block;
-      margin: 10px auto;
-      width: 100%;
-      padding: 10px;
-      background-color: #007BFF;
-      border: none;
-      color: white;
-      font-size: 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    #notification {
-      display: none;
-      text-align: center;
-      background-color: #28a745;
-      color: white;
-      padding: 8px;
-      border-radius: 4px;
-      margin-bottom: 10px;
-      font-size: 14px;
-    }
-    .input-group {
-      margin-bottom: 10px;
-    }
-    input, select {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      margin-bottom: 15px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-    }
-    #licenseNumber{
-      width: 96%;
-      padding: 8px;
-      margin-top: 5px;
-      margin-bottom: 15px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Token Copier & Card Auto-Fill</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="notification">Token copied!</div>
-  <h2>Token Copier</h2>
-  <button id="copy-third-party">Copy Third Party Token</button>
-  <button id="copy-smart-pass">Copy Smart Pass Token</button>
+<div id="notification" role="status" aria-live="polite" aria-atomic="true">Open your TAMM or payment page, then choose an action.</div>
 
-  <h3 style="margin-top: 20px;">Driving License Info</h3>
-  <div class="input-group">
-    <label for="licenseNumber">Driving License Number</label>
-    <input type="text" id="licenseNumber" placeholder="Enter license number">
+<!-- Tab Navigation -->
+<div class="tab-container">
+  <ul class="tab-nav" role="tablist" aria-label="Extension tools">
+    <li role="presentation">
+      <button id="tab-tokens" class="tab-btn active" data-tab="tokens" role="tab" aria-controls="tokens" aria-selected="true">
+        <span class="icon" aria-hidden="true">🔑</span>Tokens
+      </button>
+    </li>
+    <li role="presentation">
+      <button id="tab-cards" class="tab-btn" data-tab="cards" role="tab" aria-controls="cards" aria-selected="false" tabindex="-1">
+        <span class="icon" aria-hidden="true">💳</span>Cards
+      </button>
+    </li>
+  </ul>
+</div>
+
+<!-- Tab Content -->
+<div class="tab-content">
+  <!-- Tokens Tab -->
+  <div id="tokens" class="tab-pane active" role="tabpanel" aria-labelledby="tab-tokens">
+    <h2><span class="icon" aria-hidden="true">🔑</span>Token Copier</h2>
+
+    <button id="copy-smart-pass" class="btn-primary" data-page-action>
+      <span class="icon" aria-hidden="true">🎫</span>Copy Smart Pass Token
+    </button>
+    <button id="copy-third-party" class="btn-secondary" data-page-action>
+      <span class="icon" aria-hidden="true">📋</span>Copy Third Party Token
+    </button>
+
+    <h3>Driving License Info</h3>
+    <div class="input-group">
+      <label for="licenseNumber">
+        Driving License Number
+        <span aria-hidden="true" class="status-indicator" id="licenseStatus"></span>
+      </label>
+      <input type="text" id="licenseNumber" placeholder="Enter license number">
+    </div>
+
+    <div class="input-group">
+      <label for="emirateSelect">
+        Driving License Emirate
+        <span aria-hidden="true" class="status-indicator" id="emirateStatus"></span>
+      </label>
+      <select id="emirateSelect">
+        <option value="">Select Emirate</option>
+        <option value="Abu Dhabi">Abu Dhabi</option>
+        <option value="Ajman">Ajman</option>
+        <option value="Dubai">Dubai</option>
+        <option value="Fujairah">Fujairah</option>
+        <option value="Ras Al Khaimah">Ras Al Khaimah</option>
+        <option value="Sharjah">Sharjah</option>
+        <option value="Umm Al Quwain">Umm Al Quwain</option>
+      </select>
+    </div>
+
+    <button id="add-info" class="btn-success" data-page-action>
+      <span class="icon" aria-hidden="true">✅</span>Fill Driving License Info
+    </button>
+
+    <div class="keyboard-hint">
+      License information is saved on this device when you use Fill.
+    </div>
   </div>
 
-  <div class="input-group">
-    <label for="emirateSelect">Driving License Emirate</label>
-    <select id="emirateSelect">
-      <option value="">Select Emirate</option>
-      <option value="Abu Dhabi">Abu Dhabi</option>
-      <option value="Ajman">Ajman</option>
-      <option value="Dubai">Dubai</option>
-      <option value="Fujairah">Fujairah</option>
-      <option value="Ras Al Khaimah">Ras Al Khaimah</option>
-      <option value="Sharjah">Sharjah</option>
-      <option value="Umm Al Quwain">Umm Al Quwain</option>
-    </select>
+  <!-- Cards Tab -->
+  <div id="cards" class="tab-pane" role="tabpanel" aria-labelledby="tab-cards" hidden>
+    <h2><span class="icon" aria-hidden="true">💳</span>Card Auto-Fill</h2>
+
+    <h3>Card Information</h3>
+
+    <div class="input-group">
+      <label for="cardholderName">
+        Card Holder Name
+        <span aria-hidden="true" class="status-indicator" id="nameStatus"></span>
+      </label>
+      <input type="text" id="cardholderName" placeholder="Enter cardholder name" autocomplete="cc-name">
+    </div>
+
+    <div class="input-group">
+      <label for="cardNumber">
+        Card Number
+        <span aria-hidden="true" class="status-indicator" id="numberStatus"></span>
+      </label>
+      <input type="text" id="cardNumber" placeholder="Enter card number" maxlength="23" inputmode="numeric" autocomplete="cc-number">
+    </div>
+
+    <div class="input-group">
+      <label for="cardCvv">
+        CVC/CVV
+        <span aria-hidden="true" class="status-indicator" id="cvvStatus"></span>
+      </label>
+      <input type="password" id="cardCvv" placeholder="Enter CVV" maxlength="4" inputmode="numeric" autocomplete="off" aria-describedby="card-storage-note">
+    </div>
+
+    <div class="expiry-row">
+      <div class="input-group">
+        <label for="expMonth">
+          Month
+          <span aria-hidden="true" class="status-indicator" id="monthStatus"></span>
+        </label>
+        <select id="expMonth">
+          <option value="">MM</option>
+          <option value="1">01</option>
+          <option value="2">02</option>
+          <option value="3">03</option>
+          <option value="4">04</option>
+          <option value="5">05</option>
+          <option value="6">06</option>
+          <option value="7">07</option>
+          <option value="8">08</option>
+          <option value="9">09</option>
+          <option value="10">10</option>
+          <option value="11">11</option>
+          <option value="12">12</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label for="expYear">
+          Year
+          <span aria-hidden="true" class="status-indicator" id="yearStatus"></span>
+        </label>
+        <select id="expYear">
+          <option value="">YYYY</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Card Preview -->
+    <div class="card-preview hidden" id="cardPreview">
+      <h4>Card Preview</h4>
+      <div class="card-number" id="previewNumber">**** **** **** ****</div>
+      <div class="card-details">
+        <span id="previewName">CARDHOLDER NAME</span>
+        <span id="previewExpiry">MM/YY</span>
+      </div>
+    </div>
+
+    <button id="test-extension" class="btn-secondary test-btn" data-page-action>
+      <span class="icon" aria-hidden="true">🔧</span>Check Payment Fields
+    </button>
+    
+    <button id="fill-form" class="btn-primary" data-page-action>
+      <span class="icon" aria-hidden="true">🚀</span>Fill Payment Form
+    </button>
+
+    <p id="card-storage-note" class="keyboard-hint">Name, card number and expiry are saved on this device without encryption by this extension. CVV is never saved. Forms are filled only when you request it.</p>
+    <button id="clear-card" class="btn-secondary">Clear Saved Card</button>
+
+    <div class="keyboard-hint">
+      Press Ctrl+Enter (⌘+Enter on Mac) to fill. Review the page before paying.
+    </div>
   </div>
-
-  <button id="add-info">Add</button>
-
-  <script src="popup.js"></script>
+</div>
+<script src="extension.js"></script>
+<script src="content-script.js"></script>
+<script src="card.js"></script>
+<script src="popup.js"></script>
 </body>
 </html>
